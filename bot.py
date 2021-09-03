@@ -1,6 +1,8 @@
 # -*- coding: UTF8 -*-
+import os
 import requests
 import schedule
+from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
 
 
@@ -35,8 +37,11 @@ class BotHandler:
         return last_update
 
 
-token = ''  # Token of your bot
-magnito_bot = BotHandler(token)  # Your bot's name
+# We load the dotenv library
+load_dotenv(find_dotenv())
+
+token = os.getenv('TOKEN')  # Token of your bot
+magnito_bot = BotHandler(token)
 
 
 def btc_scraping():
@@ -47,6 +52,7 @@ def btc_scraping():
 
     return format_result
 
+
 def eth_scraping():
     url = requests.get('https://awebanalysis.com/es/coin-details/ethereum/')
     soup = BeautifulSoup(url.content, 'html.parser')
@@ -55,10 +61,12 @@ def eth_scraping():
 
     return format_result
 
+
 def tesla_scraping():
     url = requests.get('https://finance.yahoo.com/quote/TSLA/')
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find('td', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+    result = soup.find(
+        'td', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
     format_result = result
 
     return format_result
