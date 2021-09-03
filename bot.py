@@ -66,7 +66,7 @@ def tesla_scraping():
     url = requests.get('https://finance.yahoo.com/quote/TSLA/')
     soup = BeautifulSoup(url.content, 'html.parser')
     result = soup.find(
-        'td', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+        'span', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
     format_result = result
 
     return format_result
