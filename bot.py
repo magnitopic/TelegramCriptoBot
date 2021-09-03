@@ -89,11 +89,11 @@ def main():
                         magnito_bot.send_message(
                             first_chat_id, btc_scraping())
                         new_offset = first_update_id + 1
-                    if first_chat_text == '/ETH':
+                    elif first_chat_text == '/ETH':
                         magnito_bot.send_message(
                             first_chat_id, eth_scraping())
                         new_offset = first_update_id + 1
-                    if first_chat_text == 'tesla':
+                    elif first_chat_text == 'tesla':
                         magnito_bot.send_message(
                             first_chat_id, tesla_scraping())
                         new_offset = first_update_id + 1
