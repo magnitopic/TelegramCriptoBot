@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 class BotHandler:
     def __init__(self, token):
-        self.token = token
+        self.__token = token
         self.api_url = "https://api.telegram.org/bot{}/".format(token)
 
     #url = "https://api.telegram.org/bot<token>/"
@@ -49,7 +49,6 @@ def btc_scraping():
     soup = BeautifulSoup(url.content, 'html.parser')
     result = soup.find('td', {'class': 'wbreak_word align-middle coin_price'})
     format_result = result.text
-
     return format_result
 
 
@@ -58,7 +57,6 @@ def eth_scraping():
     soup = BeautifulSoup(url.content, 'html.parser')
     result = soup.find('td', {'class': 'wbreak_word align-middle coin_price'})
     format_result = result.text
-
     return format_result
 
 
@@ -68,7 +66,6 @@ def tesla_scraping():
     result = soup.find(
         'span', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
     format_result = result
-
     return format_result
 
 
