@@ -13,7 +13,7 @@ pip install -r requirements.txt
 You'll have to rename *.env.example* to just *.env* and enter you bot token. 
 >If you don't know how, [I have a video on the topic](https://youtu.be/h1QGky22b-k)
 
-Finaly run *bot.py* with python
+Finaly run *bot.py* with python.
 ```bash
 python bot.py
 ```

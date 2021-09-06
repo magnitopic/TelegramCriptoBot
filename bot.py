@@ -9,9 +9,8 @@ from bs4 import BeautifulSoup
 class BotHandler:
     def __init__(self, token):
         self.__token = token
+        #url = "https://api.telegram.org/bot<token>/"
         self.api_url = "https://api.telegram.org/bot{}/".format(token)
-
-    #url = "https://api.telegram.org/bot<token>/"
 
     def get_updates(self, offset=0, timeout=30):
         method = 'getUpdates'
@@ -40,8 +39,8 @@ class BotHandler:
 # We load the dotenv library
 load_dotenv(find_dotenv())
 
-token = os.getenv('TOKEN')  # Token of your bot
-magnito_bot = BotHandler(token)
+token = os.getenv('TOKEN')  # Your bot's TOKEN
+cypto_bot = BotHandler(token)
 
 
 def web_scraping(url):
@@ -77,13 +76,13 @@ def main():
     print('Bot now runing...')
 
     while True:
-        all_updates = magnito_bot.get_updates(new_offset)
+        all_updates = cypto_bot.get_updates(new_offset)
 
         if len(all_updates) > 0:
             for current_update in all_updates:
                 first_update_id = current_update['update_id']
 
-                # This line cheeks if the current_update doesn't have a message. If so it discards it
+                # This line cheeks if the current_update doesn't have a message or if the message dosen't have text. If so it discards it
                 if 'message' not in current_update or 'text' not in current_update['message']:
                     new_offset = first_update_id + 1
                 # Else, it awsers the message
@@ -92,13 +91,15 @@ def main():
                     first_chat_id = current_update['message']['chat']['id']
                     first_chat_name = current_update['message']['from']['first_name']
 
+                    # /help and /start are special commands the bot uses
                     if '/' in first_chat_text and first_chat_text != '/help' and first_chat_text != '/start':
                         word = first_chat_text.split()
                         for i in range(len(word)):
                             if '/' in word[i]:
-                                magnito_bot.send_message(
+                                cypto_bot.send_message(
                                     first_chat_id, get_price(word[i].lstrip("/")))
                                 new_offset = first_update_id + 1
+                    # We ignore any messages that don't have /
                     else:
                         new_offset = first_update_id + 1
 
