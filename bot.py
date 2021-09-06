@@ -43,29 +43,29 @@ load_dotenv(find_dotenv())
 token = os.getenv('TOKEN')  # Token of your bot
 magnito_bot = BotHandler(token)
 
+page=["span","Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"]
 
 def btc_scraping():
-    url = requests.get('https://awebanalysis.com/es/coin-details/bitcoin/')
+    url = requests.get('https://finance.yahoo.com/quote/BTC-USD')
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find('td', {'class': 'wbreak_word align-middle coin_price'})
-    format_result = result.text
+    result = soup.find(page[0], {'class': page[1]})
+    format_result = 'Current BTC price is '+result.text+" USD"
     return format_result
 
 
 def eth_scraping():
-    url = requests.get('https://awebanalysis.com/es/coin-details/ethereum/')
+    url = requests.get('https://finance.yahoo.com/quote/ETH-USD')
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find('td', {'class': 'wbreak_word align-middle coin_price'})
-    format_result = result.text
+    result = soup.find(page[0], {'class': {page[1]}})
+    format_result = 'Current ETH price is '+result.text+" USD"
     return format_result
 
 
 def tesla_scraping():
     url = requests.get('https://finance.yahoo.com/quote/TSLA/')
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find(
-        'span', {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
-    format_result = result
+    result = soup.find(page[0], {'class': page[1]})
+    format_result = 'Current TSLA stock price is '+result.text+" USD"
     return format_result
 
 
