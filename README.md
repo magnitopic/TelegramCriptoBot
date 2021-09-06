@@ -1,9 +1,9 @@
 # TelegramCryptoBot
 
 ## About the proyect
-This proyect goal is to have a telegram bot that gives updates, in real time, on Cypto prices.
+This proyect goal is to have a telegram bot that gives updates, in real time, on Cypto and stock prices.
 
-To do so I use Web Scarping to obtain the updated data.
+To do so I use Web Scarping to obtain the updated data. The source page is [Yahoo Finance](https://finance.yahoo.com/).
 
 ## Run the bot
 Run the folowing command in your terminal to install de dependancies:
