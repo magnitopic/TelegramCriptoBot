@@ -43,30 +43,33 @@ load_dotenv(find_dotenv())
 token = os.getenv('TOKEN')  # Token of your bot
 magnito_bot = BotHandler(token)
 
-page=["span","Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"]
 
-def btc_scraping():
-    url = requests.get('https://finance.yahoo.com/quote/BTC-USD')
+def web_scraping(url):
+    url = requests.get('https://finance.yahoo.com/quote/'+url.upper())
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find(page[0], {'class': page[1]})
-    format_result = 'Current BTC price is '+result.text+" USD"
-    return format_result
+    result = soup.find(
+        "span", {'class': "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"})
+    return result
 
 
-def eth_scraping():
-    url = requests.get('https://finance.yahoo.com/quote/ETH-USD')
-    soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find(page[0], {'class': {page[1]}})
-    format_result = 'Current ETH price is '+result.text+" USD"
-    return format_result
+def get_price(asset):
+    print(asset.upper())
+    print("¨"*10)
+    # It first cheks if it's a cypto. Yahoo finance places -USD at the end of the URL for cyptos
+    price = web_scraping(asset+'-usd')
+    if price != None:
+        format_result = 'Current '+asset.upper() + \
+            ' price is '+price.text+" USD"
+        return format_result
 
+    price = web_scraping(asset)
+    if price != None:
+        format_result = 'Current '+asset.upper() + \
+            ' price is '+price.text+" USD"
+        return format_result
 
-def tesla_scraping():
-    url = requests.get('https://finance.yahoo.com/quote/TSLA/')
-    soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find(page[0], {'class': page[1]})
-    format_result = 'Current TSLA stock price is '+result.text+" USD"
-    return format_result
+    else:
+        return "Asset does not exist."
 
 
 def main():
@@ -78,11 +81,10 @@ def main():
 
         if len(all_updates) > 0:
             for current_update in all_updates:
-                print(current_update)
                 first_update_id = current_update['update_id']
 
                 # This line cheeks if the current_update doesn't have a message. If so it discards it
-                if 'message' not in current_update:
+                if 'message' not in current_update or 'text' not in current_update['message']:
                     new_offset = first_update_id + 1
                 # Else, it awsers the message
                 else:
@@ -90,21 +92,14 @@ def main():
                     first_chat_id = current_update['message']['chat']['id']
                     first_chat_name = current_update['message']['from']['first_name']
 
-                    if first_chat_text == '/BTC':
-                        magnito_bot.send_message(
-                            first_chat_id, btc_scraping())
-                        new_offset = first_update_id + 1
-                    elif first_chat_text == '/ETH':
-                        magnito_bot.send_message(
-                            first_chat_id, eth_scraping())
-                        new_offset = first_update_id + 1
-                    elif first_chat_text == 'tesla':
-                        magnito_bot.send_message(
-                            first_chat_id, tesla_scraping())
-                        new_offset = first_update_id + 1
+                    if '/' in first_chat_text and first_chat_text != '/help' and first_chat_text != '/start':
+                        word = first_chat_text.split()
+                        for i in range(len(word)):
+                            if '/' in word[i]:
+                                magnito_bot.send_message(
+                                    first_chat_id, get_price(word[i].lstrip("/")))
+                                new_offset = first_update_id + 1
                     else:
-                        magnito_bot.send_message(
-                            first_chat_id, 'How are you doing '+first_chat_name)
                         new_offset = first_update_id + 1
 
 
