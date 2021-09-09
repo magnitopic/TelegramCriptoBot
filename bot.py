@@ -1,4 +1,5 @@
 # -*- coding: UTF8 -*-
+# Crypro bot
 import os
 import requests
 import schedule
@@ -73,6 +74,7 @@ def get_price(asset):
 
 def main():
     new_offset = 0
+    new_program_update = False
     print('Bot now runing...')
 
     while True:
@@ -91,8 +93,43 @@ def main():
                     first_chat_id = current_update['message']['chat']['id']
                     first_chat_name = current_update['message']['from']['first_name']
 
-                    # /help and /start are special commands the bot uses
-                    if '/' in first_chat_text and first_chat_text != '/help' and first_chat_text != '/start':
+                    if new_program_update == True:
+                        if asset == None and get_price(first_chat_text) != "Asset does not exist.":
+                            asset = first_chat_text
+                            new_offset = first_update_id + 1
+                            cypto_bot.send_message(
+                                first_chat_id, "At what time should I remind you? (24h format \"XX:XX\")")
+                        elif time == None and first_chat_text.lower() != "exit":
+                            try:
+                                schedule.every().day.at(first_chat_text)
+                            except:
+                                cypto_bot.send_message(
+                                    first_chat_id, "Invalid input. Try Again! (exit to cancel)")
+                                new_offset = first_update_id + 1
+                            else:
+                                time = first_chat_text
+                                new_offset = first_update_id + 1
+                                new_program_update = False
+                                cypto_bot.send_message(
+                                    first_chat_id, "Reminder set! I'll give you "+asset+" price every day at "+time)
+                                print("Asset: "+asset)
+                                print("Time: "+time)
+                        else:
+                            cypto_bot.send_message(
+                                first_chat_id, "Reminder canceled!")
+                            new_program_update = False
+                            new_offset = first_update_id + 1
+
+                    elif '/program_update' in first_chat_text:
+                        cypto_bot.send_message(
+                            first_chat_id, "What asset should I send you updates on?(No need to add /)")
+                        new_offset = first_update_id + 1
+                        new_program_update = True
+                        asset = None
+                        time = None
+
+                   # /help and /start are special commands the bot uses
+                    elif '/' in first_chat_text and first_chat_text != '/help' and first_chat_text != '/start':
                         word = first_chat_text.split()
                         for i in range(len(word)):
                             if '/' in word[i]:
