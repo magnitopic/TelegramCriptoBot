@@ -5,6 +5,7 @@ import requests
 import schedule
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
+from webServer import keep_alive
 
 
 class BotHandler:
@@ -73,6 +74,7 @@ def get_price(asset):
 
 
 def main():
+    keep_alive()
     new_offset = 0
     new_program_update = False
     print('Bot now runing...')
