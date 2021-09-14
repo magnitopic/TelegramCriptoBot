@@ -41,7 +41,10 @@ class BotHandler:
 # We load the dotenv library
 load_dotenv(find_dotenv())
 
-token = os.getenv('TOKEN')  # Your bot's TOKEN
+
+# When using .env file use:
+# os.getenv('TOKEN')
+token = os.environ['TOKEN']  # Your bot's TOKEN
 cypto_bot = BotHandler(token)
 
 
