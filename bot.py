@@ -51,8 +51,7 @@ cypto_bot = BotHandler(token)
 def web_scraping(url):
     url = requests.get('https://finance.yahoo.com/quote/'+url.upper())
     soup = BeautifulSoup(url.content, 'html.parser')
-    result = soup.find(
-        "span", {'class': "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"})
+    result = soup.find("fin-streamer", {'class': "Fw(b) Fz(36px) Mb(-4px) D(ib)"})
     return result
 
 
@@ -76,8 +75,9 @@ def get_price(asset):
         return "Asset does not exist."
 
 
-def respondSchedule(asset,ID):
+def respondSchedule(asset, ID):
     cypto_bot.send_message(ID, get_price(asset))
+
 
 def main():
     keep_alive()
@@ -105,29 +105,35 @@ def main():
                         if asset == None and get_price(first_chat_text) != "Asset does not exist.":
                             asset = first_chat_text
                             new_offset = first_update_id + 1
-                            cypto_bot.send_message(first_chat_id, 'At what time should I remind you? (24h format "XX:XX")')
+                            cypto_bot.send_message(
+                                first_chat_id, 'At what time should I remind you? (24h format "XX:XX")')
                         elif time == None and first_chat_text.lower() != "exit":
                             # I use try except to see if the user is giving me an invalid time
                             # I give it as an argument to the schedule library
                             # If it gives an error I tell the user it's an invalid input
                             try:
-                                schedule.every().day.at(first_chat_text).do(respondSchedule,asset=asset,ID=first_chat_id)
+                                schedule.every().day.at(first_chat_text).do(
+                                    respondSchedule, asset=asset, ID=first_chat_id)
                             except:
-                                cypto_bot.send_message(first_chat_id, "Invalid input. Try Again! (exit to cancel)")
+                                cypto_bot.send_message(
+                                    first_chat_id, "Invalid input. Try Again! (exit to cancel)")
                                 new_offset = first_update_id + 1
                             else:
                                 time = first_chat_text
                                 new_offset = first_update_id + 1
                                 new_program_update = False
-                                cypto_bot.send_message(first_chat_id, "Reminder set! I'll give you "+asset+" price every day at "+time)
+                                cypto_bot.send_message(
+                                    first_chat_id, "Reminder set! I'll give you "+asset+" price every day at "+time)
                                 print("Asset: "+asset)
                                 print("Time: "+time)
                         else:
-                            cypto_bot.send_message(first_chat_id, "Reminder canceled!")
+                            cypto_bot.send_message(
+                                first_chat_id, "Reminder canceled!")
                             new_program_update = False
                             new_offset = first_update_id + 1
                     elif '/set_reminder' in first_chat_text:
-                        cypto_bot.send_message(first_chat_id, "What asset should I send you updates on?(No need to add /)")
+                        cypto_bot.send_message(
+                            first_chat_id, "What asset should I send you updates on?(No need to add /)")
                         new_offset = first_update_id + 1
                         new_program_update = True
                         asset = None
@@ -138,7 +144,8 @@ def main():
                         word = first_chat_text.split()
                         for i in range(len(word)):
                             if '/' in word[i]:
-                                cypto_bot.send_message(first_chat_id, get_price(word[i].lstrip("/")))
+                                cypto_bot.send_message(
+                                    first_chat_id, get_price(word[i].lstrip("/")))
                                 new_offset = first_update_id + 1
                     # We ignore any messages that don't have /
                     else:
