@@ -1,7 +1,9 @@
 # TelegramCryptoBot
 
 ## About the proyect
-This project goal is to have a telegram bot that gives updates, in real time, on Crypto and stock prices.
+This project goal is to have a telegram bot that gives updates, in real time, on Cryptos and stock prices.
+
+You can also set and cancel reminders that will give an assets price every day at the time you specify.
 
 To do so I use Web Scraping to obtain the updated data. The source page is [Yahoo Finance](https://finance.yahoo.com/).
 
