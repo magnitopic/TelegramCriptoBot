@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from webServer import keep_alive
 
 
+# BotHandler class, interacts with the telegram api
 class BotHandler:
     def __init__(self, token):
         self.__token = token
@@ -40,14 +41,13 @@ class BotHandler:
 
 # We load the dotenv library
 load_dotenv(find_dotenv())
-
-
 # When using .env file use:
 # os.getenv('TOKEN')
 token = os.environ['TOKEN']  # Your bot's TOKEN
 crypto_bot = BotHandler(token)
 
 
+# I'm using yahoo finance to get my information
 def web_scraping(url):
     url = requests.get('https://finance.yahoo.com/quote/'+url.upper())
     soup = BeautifulSoup(url.content, 'html.parser')
@@ -73,6 +73,8 @@ def get_price(asset):
     else:
         return "Asset does not exist."
 
+# Function that gets executed when schedule calls it and searches the users asset
+
 
 def respondSchedule(asset, ID):
     print(f"{asset.upper()} reminder")
@@ -80,13 +82,14 @@ def respondSchedule(asset, ID):
 
 
 def main():
+    # Keep_alive cals the webServer,py file and mantains the script alive
     keep_alive()
-    new_offset, new_reminder, canceling_reminder = 0, False, False
+    new_offset, new_reminder, canceling_reminder, userState = 0, False, False, {}
     print('Bot now runing...')
-    reminders = {}
 
     while True:
         schedule.run_pending()
+        # Gets list of all the updates
         all_updates = crypto_bot.get_updates(new_offset)
 
         # If there are any new updates
@@ -103,10 +106,9 @@ def main():
                     # User name of the user
                     first_chat_name = current_update['message']['from']['first_name']
 
-                    # We need to add all users to the reminders dictionary or we'll get an error later
-                    if first_chat_id not in reminders.keys():
-                        reminders[first_chat_id] = []
-
+                    # We add all users to the userState dictionary
+                    if first_chat_id not in userState.keys():
+                        userState[first_chat_id] = []
                     # We need a boolean to cheek if the incoming messages are meant for the /set_reminder command
                     if new_reminder:
                         # To set a reminder we need two values for our variables, the asset and the time
@@ -127,15 +129,14 @@ def main():
                             # I give the message as an argument to the schedule library
                             # If it returns an error I tell the user it's an invalid input
                             try:
-                                #reminder = schedule.every().day.at(first_chat_text).do(respondSchedule, asset=asset, ID=first_chat_id)
-                                reminder = schedule.every().minute.do(
+                                reminder = schedule.every().day.at(first_chat_text).do(
                                     respondSchedule, asset=asset, ID=first_chat_id)
                             except:
                                 crypto_bot.send_message(
                                     first_chat_id, "Invalid format. Try Again! (exit to cancel)")
                             else:
                                 # If the user is not in the list he gets added
-                                reminders[first_chat_id].append(
+                                userState[first_chat_id].append(
                                     [reminder, f"{asset} reminder at {first_chat_text}"])
                                 new_reminder = False
                                 crypto_bot.send_message(
@@ -147,7 +148,7 @@ def main():
                         if first_chat_text.lower() != "exit":
                             try:
                                 option = int(first_chat_text)
-                                if option <= 0 or option > len(reminders[first_chat_id]):
+                                if option <= 0 or option > len(userState[first_chat_id]):
                                     raise ValueError('ERROR')
                             except:
                                 crypto_bot.send_message(
@@ -155,9 +156,9 @@ def main():
                             else:
                                 # The job the user selects gets canceled
                                 schedule.cancel_job(
-                                    reminders[first_chat_id][option-1][0])
+                                    userState[first_chat_id][option-1][0])
                                 # Item gets deleted form the dictionary
-                                reminders[first_chat_id].pop(option-1)
+                                userState[first_chat_id].pop(option-1)
                                 crypto_bot.send_message(
                                     first_chat_id, "Reminder canceled.")
                                 canceling_reminder = False
@@ -167,11 +168,11 @@ def main():
                             canceling_reminder = False
 
                     elif '/cancel_reminder' in first_chat_text:
-                        if len(reminders[first_chat_id]) != 0:
+                        if len(userState[first_chat_id]) != 0:
                             text = "Send the number of the reminder you what to cancel.\nYour reminders:"
-                            for i in range(len(reminders[first_chat_id])):
+                            for i in range(len(userState[first_chat_id])):
                                 text += f"\n\t {i+1}. " + \
-                                    reminders[first_chat_id][i][1]
+                                    userState[first_chat_id][i][1]
                             crypto_bot.send_message(first_chat_id, text)
                             canceling_reminder = True
                         else:
