@@ -1,0 +1,28 @@
+{
+    "UserId1": {
+        "state": "normal",
+        "reminders": []
+    },
+	"UserId2": {
+        "state": "newReminder",
+        "reminders": [
+            [
+                "ReminderCode",
+                "Message"
+            ],
+            [
+                "ReminderCode",
+                "Message"
+            ]
+        ]
+    },
+	"UserId3": {
+        "state": "delReminder",
+        "reminders": [
+            [
+                "ReminderCode",
+                "Message"
+            ]
+        ]
+    }
+}
