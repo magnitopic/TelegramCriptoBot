@@ -12,7 +12,7 @@ from webServer import keep_alive
 class BotHandler:
     def __init__(self, token):
         self.__token = token
-        #url = "https://api.telegram.org/bot<token>/"
+        # url = "https://api.telegram.org/bot<token>/"
         self.api_url = "https://api.telegram.org/bot{}/".format(token)
 
     def get_updates(self, offset=0, timeout=30):
@@ -102,96 +102,89 @@ def main():
                     # The message they sent
                     first_chat_text = current_update['message']['text']
                     # The id of the user that sent the message
-                    first_chat_id = current_update['message']['chat']['id']
+                    userID = current_update['message']['chat']['id']
                     # User name of the user
                     first_chat_name = current_update['message']['from']['first_name']
 
                     # We add all users to the userState dictionary
-                    if first_chat_id not in userState.keys():
-                        userState[first_chat_id] = []
-                    # We need a boolean to cheek if the incoming messages are meant for the /set_reminder command
-                    if new_reminder:
+                    if userID not in userState.keys():
+                        userState[userID] = {"state": "normal", "asset": "", "reminders": []}
+
+                    # We need to cheek if the user is setting up a reminder
+                    if userState[userID]["state"] == "newReminder":
                         # To set a reminder we need two values for our variables, the asset and the time
+
+                        #If at any time the user types exit, the reminder is canceled
                         if first_chat_text.lower() == "exit":
-                            new_reminder = False
-                            crypto_bot.send_message(
-                                first_chat_id, "Reminder canceled")
-                        elif asset == None:
-                            if get_price(first_chat_text) != "Asset does not exist.":
-                                asset = first_chat_text.upper()
-                                crypto_bot.send_message(
-                                    first_chat_id, 'At what time should I remind you? (24h format "XX:XX")')
-                            else:
-                                crypto_bot.send_message(
-                                    first_chat_id, 'Invalid asset. Try again.(exit to cancel)')
-                        elif time == None and asset != None:
+                            crypto_bot.send_message(userID, "Reminder canceled")
+                            userState[userID]["state"] = "normal"
+                            userState[userID]["asset"] = ""
+
+                        # We cheek we don't have a value for the asset and that it's value is valid
+                        elif userState[userID]["asset"] == "" and get_price(first_chat_text) != "Asset does not exist.":
+                            userState[userID]["asset"] = first_chat_text.upper()
+                            crypto_bot.send_message(userID, 'At what time should I remind you? (24h format "XX:XX")')
+
+                        # Once we have the asset we get the time
+                        elif userState[userID]["asset"] != "":
                             # I use try except to see if the user is giving an invalid time
                             # I give the message as an argument to the schedule library
                             # If it returns an error I tell the user it's an invalid input
                             try:
-                                reminder = schedule.every().day.at(first_chat_text).do(
-                                    respondSchedule, asset=asset, ID=first_chat_id)
+                                reminder = schedule.every().day.at(first_chat_text).do(respondSchedule, asset=userState[userID]["asset"], ID=userID)
                             except:
-                                crypto_bot.send_message(
-                                    first_chat_id, "Invalid format. Try Again! (exit to cancel)")
+                                crypto_bot.send_message(userID, "Invalid input. Try Again! (exit to cancel)")
                             else:
-                                # If the user is not in the list he gets added
-                                userState[first_chat_id].append(
-                                    [reminder, f"{asset} reminder at {first_chat_text}"])
-                                new_reminder = False
-                                crypto_bot.send_message(
-                                    first_chat_id, "Reminder set! I'll give you "+asset+"'s price every day at "+first_chat_text)
-                                print("_"*10)
-                                print(
-                                    f"New reminder:\nAsset: {asset}\nTime: {first_chat_text}")
-                    elif canceling_reminder:
+                                print(userState[userID]['asset']+" reminder at "+first_chat_text)
+                                # Add the schedule object to the reminders for that user
+                                userState[userID]["reminders"].append([reminder, userState[userID]['asset']+" reminder at "+first_chat_text])
+                                print(userState[userID]["reminders"])
+                                crypto_bot.send_message(userID, "Reminder set! I'll give you "+userState[userID]["asset"]+"'s price every day at "+first_chat_text)
+                                # Print new reminder on server terminal
+                                print(f"{'_'*10}\nNew reminder:\nAsset: {userState[userID]['asset']}\nTime: {first_chat_text}")
+                                # Reset variables
+                                userState[userID]["state"] = "normal"
+                                userState[userID]["asset"] = ""
+                        else:
+                            crypto_bot.send_message(userID, "Invalid input. Try Again! (exit to cancel)")
+
+                    elif userState[userID]["state"] == "delReminder":
                         if first_chat_text.lower() != "exit":
                             try:
                                 option = int(first_chat_text)
-                                if option <= 0 or option > len(userState[first_chat_id]):
+                                if option <= 0 or option > len(userState[userID]["reminders"]):
                                     raise ValueError('ERROR')
                             except:
-                                crypto_bot.send_message(
-                                    first_chat_id, "Invalid format. Try Again! (exit to cancel)")
+                                crypto_bot.send_message(userID, "Invalid input. Try Again! (exit to cancel)")
                             else:
                                 # The job the user selects gets canceled
-                                schedule.cancel_job(
-                                    userState[first_chat_id][option-1][0])
+                                schedule.cancel_job(userState[userID]["reminders"][option-1][0])
                                 # Item gets deleted form the dictionary
-                                userState[first_chat_id].pop(option-1)
-                                crypto_bot.send_message(
-                                    first_chat_id, "Reminder canceled.")
-                                canceling_reminder = False
+                                userState[userID]["reminders"].pop(option-1)
+                                crypto_bot.send_message(userID, "Reminder canceled.")
+                                userState[userID]["state"] = "normal"
                         else:
-                            crypto_bot.send_message(
-                                first_chat_id, "Ok, no reminder was canceled.")
-                            canceling_reminder = False
-
+                            crypto_bot.send_message(userID, "Ok, no reminder was canceled.")
+                            userState[userID]["state"] = "normal"
                     elif '/cancel_reminder' in first_chat_text:
-                        if len(userState[first_chat_id]) != 0:
-                            text = "Send the number of the reminder you what to cancel.\nYour reminders:"
-                            for i in range(len(userState[first_chat_id])):
-                                text += f"\n\t {i+1}. " + \
-                                    userState[first_chat_id][i][1]
-                            crypto_bot.send_message(first_chat_id, text)
-                            canceling_reminder = True
+                        if len(userState[userID]["reminders"]) != 0:
+                            # https://stackoverflow.com/questions/10967819/python-when-can-i-unpack-a-generator
+                            # Sends a message with all the reminders that user has
+                            [*text]=("Send the number of the reminder you what to cancel.\nYour reminders:"+("\n\t"+str(i+1)+". " + userState[userID]["reminders"][i][1]) for i in range(len(userState[userID]["reminders"])))
+                            crypto_bot.send_message(userID, text)
+                            userState[userID]["state"]="delReminder"
                         else:
-                            crypto_bot.send_message(
-                                first_chat_id, "You don't have any reminders created.")
+                            crypto_bot.send_message(userID, "You don't have any reminders created.")
                     # We need to cheek for the /set_reminder so that it dosen't get looked up like an asset
                     elif '/set_reminder' in first_chat_text:
-                        crypto_bot.send_message(
-                            first_chat_id, "What asset should I send you updates on?(No need to add /)")
-                        new_reminder = True
-                        asset = None
-                        time = None
+                        crypto_bot.send_message(userID, "What asset should I send you updates on?(No need to add /)")
+                        userState[userID]["state"]="newReminder"
                    # If the message has a / in front we cheeck it as an asset price. Except for /help and /start
                     elif '/' in first_chat_text and first_chat_text != '/help' and first_chat_text != '/start':
-                        crypto_bot.send_message(
-                            first_chat_id, get_price(first_chat_text.lstrip("/")))
+                        crypto_bot.send_message(userID, get_price(first_chat_text.lstrip("/")))
                         print("_"*10)
                         print(first_chat_text.upper().lstrip("/"))
-                # After every update has been procesed we can pass on to the next one
+                # After every update has been procesed we can move on to the next one
                 new_offset = first_update_id + 1
 
 

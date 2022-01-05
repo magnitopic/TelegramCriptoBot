@@ -1,28 +1,20 @@
 {
-    "UserId1": {
-        "state": "normal",
-        "reminders": []
-    },
+	"UserId1": {
+		"state": "normal",
+		"asset": "",
+		"reminders": []
+	},
 	"UserId2": {
-        "state": "newReminder",
-        "reminders": [
-            [
-                "ReminderCode",
-                "Message"
-            ],
-            [
-                "ReminderCode",
-                "Message"
-            ]
-        ]
-    },
+		"state": "newReminder",
+		"asset": "",
+		"reminders": [
+			["ReminderCode", "Message"],
+			["ReminderCode", "Message"]
+		]
+	},
 	"UserId3": {
-        "state": "delReminder",
-        "reminders": [
-            [
-                "ReminderCode",
-                "Message"
-            ]
-        ]
-    }
+		"state": "delReminder",
+		"asset": "",
+		"reminders": [["ReminderCode", "Message"]]
+	}
 }
